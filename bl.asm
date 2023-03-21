@@ -8,7 +8,9 @@ jmp launch_kernel
 %include "disk_read.asm"
 %include "gdt.asm"
 %include "print_string.asm"
+%include "switch_modes.asm"
 
+[bits 16]
 boot_init:
 	pop bx
 	KERNEL_ADDRESS equ 0x1000
@@ -23,9 +25,6 @@ kernel_load:
 	popa
 	ret	
 	
-%include "switch_modes.asm"
-
-[bits 16]
 switch_to_32bit:
 	cli
 	lgdt [gdt_descriptor]
