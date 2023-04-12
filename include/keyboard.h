@@ -1,6 +1,5 @@
 #ifndef H_KEYBOARD
 #define H_KEYBOARD
-unsigned char inb(unsigned short port);
 unsigned char scan(void);
 static char charmap[256] =
 {0,   0x1B, '1',  '2',  '3',  '4',  '5',  '6',
