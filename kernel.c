@@ -2,21 +2,15 @@
 #include "keyboard.h"
 void main(){
 	clear_terminal();
-	//print_character('H');
-	//print_character('e');
-	//print_line("llo World");
-	//print_string("TODAY");
-	print_integer(131567);
-	print_integer(2789);
+	update_cursor();
 	unsigned char byte;
 	while (1) {
 		while (byte = scan()) {
 			print_character(charmap[byte]);
+			print_integer(get_cursor_position());
 			update_cursor();
 		}
 	}
-	//print_character_with_color("A", BLACK, YELLOW);
-	//print_character_with_color("A", 0x00, 0x0E);
 
 	return;
 }
