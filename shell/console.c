@@ -1,7 +1,13 @@
 #include "console.h"
+#include "keyboard.h"
 char* const VGA_BUFFER = (char*) 0xb8000;
 char int_buffer[11];
+char font_color = 0x07;
 int term_pos = 0;
+char terminal_command[64];
+char terminal_options[128];
+int space = 0;
+int running = 1;
 	
 void clear_terminal(){
 	for (int i=0; i < VGA_TOTAL_BYTES; i+=2){
@@ -13,7 +19,7 @@ void clear_terminal(){
 
 void print_character(char c){
 	VGA_BUFFER[term_pos++] = c;
-	VGA_BUFFER[term_pos++] = 0x07;
+	VGA_BUFFER[term_pos++] = font_color;
 }
 
 void print_string(char* str){
@@ -113,4 +119,150 @@ uint16_t get_cursor_position(){
 	outb(0x3D4, 0x0E);
 	cursor_position |= ((uint16_t)inb(0x3D5)) << 8;
 	return cursor_position;
+}
+
+int strcmp(char* str1, char* str2){
+	int index = 0;
+	while((str1[index] != '\0') && (str1[index] == str2[index])){
+		index++;
+	}
+	//while (*str1 && *str1==*str2){
+	//	str1++, str2++;
+	//}
+	//return *str1 - *str2;
+	return str1[index] - str2[index];
+}
+
+size_t strlen(const char *str){
+	size_t count = 0;
+	while(str[count] != '\0'){
+		count++;
+	}
+	return count;
+}
+
+int read(unsigned int byte){
+	while (byte = scan()) {
+		if (charmap[byte] == '\n'){
+			if (space == 0){
+				terminal_command[get_cursor_position() % VGA_WIDTH - 2] = '\0';
+			} else {
+				terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = '\0';
+			}
+			
+			if(handle_command(terminal_command, terminal_options, 0) == 1){
+				return 1;
+			} else {
+				handle_command(terminal_command, terminal_options, 0);
+			}
+		//	if (strcmp(terminal_command, "exit") == 0){
+		//		print_string("a");
+		//	}	
+
+		//	if (strcmp(terminal_command, "set-terminal-font-color") == 0){
+		//		print_string("b");
+		//	}	
+
+//			print_string(terminal_command);
+//			print_string(terminal_options);
+			print_line("");
+			print_string("->");
+			//count = 0;
+			space = 0;
+		} else {
+			print_character(charmap[byte]);
+			if (charmap[byte] == ' '){
+				space = 1;
+				terminal_command[get_cursor_position() % VGA_WIDTH - 2] = '\0';
+			//	count = 0;
+			} else {
+
+				if (space == 0){
+				//if (get_cursor_position() % VGA_WIDTH - 2 > 64) {
+					if (strlen(terminal_command) >= 64) {
+						handle_command(terminal_command, terminal_options, 1);
+					}	
+
+					terminal_command[get_cursor_position() % VGA_WIDTH - 2] = charmap[byte];
+				} else {
+				//if ((get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 2 > 128) {
+				//	handle_command(terminal_command, terminal_options, 2);
+				//}
+					if (strlen(terminal_options) >= 128) {
+						handle_command(terminal_command, terminal_options, 2);
+					}
+
+					terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = charmap[byte];
+				}
+			}
+			//count++;
+
+		}
+		update_cursor();
+	}
+	return 0;
+}
+
+int handle_command(char terminal_command[64], char terminal_options[128], int error){
+	if (error == 1){
+		print_line("");
+		print_string("Error: Max command length is 64 characters.");
+		print_line("");
+		print_string("->");
+	}
+
+	if (error == 2){
+		print_line("");
+		print_string("Error: Max length for command and options is 192 characters.");
+		print_line("");
+		print_string("->");
+	}
+
+	if (strcmp(terminal_command, "exit") == 0){
+		print_line("");
+		print_line("Exit: 1");
+		update_cursor();
+		return 1;
+	}	
+
+	if (strcmp(terminal_command, "set-terminal-font-color") == 0){
+	//	print_string(terminal_options);
+	//	if (strcmp(terminal_options, "-blue") == 0){
+		//	font_color = 0x09;
+		//}
+		if (strcmp(terminal_options, "-black") == 0) {
+			font_color = 0x00;
+		}else if (strcmp(terminal_options, "-blue") == 0){
+			font_color = 0x01;
+		}else if (strcmp(terminal_options, "-green") == 0){
+			font_color = 0x02;
+		} else if (strcmp(terminal_options, "-cyan") == 0){
+			font_color = 0x03;
+		} else if (strcmp(terminal_options, "-red") == 0){
+			font_color = 0x04;
+		} else if (strcmp(terminal_options, "-magenta") == 0){
+			font_color = 0x05;
+		} else if (strcmp(terminal_options, "-brown") == 0){
+			font_color = 0x06;
+		} else if (strcmp(terminal_options, "-lightgray") == 0){
+			font_color = 0x07;
+		} else if (strcmp(terminal_options, "-darkgray") == 0){
+			font_color = 0x08;
+		} else if (strcmp(terminal_options, "-lightblue") == 0){
+			font_color = 0x09;
+		} else if (strcmp(terminal_options, "-lightgreen") == 0){
+			font_color = 0x0a;
+		} else if (strcmp(terminal_options, "-lightcyan") == 0){
+			font_color = 0x0b;
+		} else if (strcmp(terminal_options, "-lightred") == 0){
+			font_color = 0x0c;
+		} else if (strcmp(terminal_options, "-lightmagenta") == 0){
+			font_color = 0x0d;
+		} else if (strcmp(terminal_options, "-yellow") == 0){
+			font_color = 0x0e;
+		} else if (strcmp(terminal_options, "-white") == 0){
+			font_color = 0x0f;
+		}
+	}	
+	return 0;
 }
