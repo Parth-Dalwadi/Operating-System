@@ -10,8 +10,6 @@ void update_cursor();
 uint16_t get_cursor_position();
 void print_integer(int toPrint);
 void itoa(char* buffer, int toPrint);
-int strcmp(char* str1, char* str2);
-size_t strlen(const char *str);
 int read(unsigned int byte);
 int handle_command(char terminal_command[64], char terminal_options[128], int error);
 #define VGA_WIDTH 80
