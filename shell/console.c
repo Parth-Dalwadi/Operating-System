@@ -191,10 +191,6 @@ int handle_command(char terminal_command[64], char terminal_options[128], int er
 	}	
 
 	if (strcmp(terminal_command, "set-terminal-font-color") == 0){
-	//	print_string(terminal_options);
-	//	if (strcmp(terminal_options, "-blue") == 0){
-		//	font_color = 0x09;
-		//}
 		if (strcmp(terminal_options, "-black") == 0) {
 			font_color = 0x00;
 		}else if (strcmp(terminal_options, "-blue") == 0){
