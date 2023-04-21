@@ -150,15 +150,16 @@ int read(unsigned int byte){
 					if (strlen(terminal_command) >= 64 && terminal_command[63] != '\0') {
 						terminal_command[63] = '\0';
 						handle_command(terminal_command, terminal_options, 1);
+					} else {
+						terminal_command[get_cursor_position() % VGA_WIDTH - 2] = charmap[byte];
 					}	
-
-					terminal_command[get_cursor_position() % VGA_WIDTH - 2] = charmap[byte];
 				} else {
-					if (strlen(terminal_options) >= 128) {
+					if (strlen(terminal_options) >= 128 && terminal_options[127] != '\0') {
+						terminal_options[127] = '\0';
 						handle_command(terminal_command, terminal_options, 2);
+					} else {
+						terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = charmap[byte];
 					}
-
-					terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = charmap[byte];
 				}
 			}
 
@@ -171,15 +172,13 @@ int read(unsigned int byte){
 int handle_command(char terminal_command[64], char terminal_options[128], int error){
 	if (error == 1){
 		print_line("");
-		print_string("Error: Max command length is 64 characters.");
-		print_line("");
+		print_line("Error: Max command length is 64 characters.");
 		print_string("->");
 	}
 
 	if (error == 2){
 		print_line("");
-		print_string("Error: Max length for command and options is 192 characters.");
-		print_line("");
+		print_line("Error: Max length for command and options is 192 characters.");
 		print_string("->");
 	}
 
