@@ -12,6 +12,8 @@ void print_integer(int toPrint);
 void itoa(char* buffer, int toPrint);
 int strcmp(char* str1, char* str2);
 size_t strlen(const char *str);
+int read(unsigned int byte);
+int handle_command(char terminal_command[64], char terminal_options[128], int error);
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 #define VGA_BYTES_PER_CHARACTER 2
