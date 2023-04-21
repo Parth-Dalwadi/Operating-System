@@ -8,7 +8,6 @@ int term_pos = 0;
 char terminal_command[64];
 char terminal_options[128];
 int space = 0;
-int running = 1;
 	
 void clear_terminal(){
 	for (int i=0; i < VGA_TOTAL_BYTES; i+=2){
@@ -136,39 +135,25 @@ int read(unsigned int byte){
 			} else {
 				handle_command(terminal_command, terminal_options, 0);
 			}
-		//	if (strcmp(terminal_command, "exit") == 0){
-		//		print_string("a");
-		//	}	
 
-		//	if (strcmp(terminal_command, "set-terminal-font-color") == 0){
-		//		print_string("b");
-		//	}	
-
-//			print_string(terminal_command);
-//			print_string(terminal_options);
 			print_line("");
 			print_string("->");
-			//count = 0;
 			space = 0;
 		} else {
 			print_character(charmap[byte]);
 			if (charmap[byte] == ' '){
 				space = 1;
 				terminal_command[get_cursor_position() % VGA_WIDTH - 2] = '\0';
-			//	count = 0;
 			} else {
 
 				if (space == 0){
-				//if (get_cursor_position() % VGA_WIDTH - 2 > 64) {
-					if (strlen(terminal_command) >= 64) {
+					if (strlen(terminal_command) >= 64 && terminal_command[63] != '\0') {
+						terminal_command[63] = '\0';
 						handle_command(terminal_command, terminal_options, 1);
 					}	
 
 					terminal_command[get_cursor_position() % VGA_WIDTH - 2] = charmap[byte];
 				} else {
-				//if ((get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 2 > 128) {
-				//	handle_command(terminal_command, terminal_options, 2);
-				//}
 					if (strlen(terminal_options) >= 128) {
 						handle_command(terminal_command, terminal_options, 2);
 					}
@@ -176,7 +161,6 @@ int read(unsigned int byte){
 					terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = charmap[byte];
 				}
 			}
-			//count++;
 
 		}
 		update_cursor();
