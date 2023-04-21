@@ -1,5 +1,6 @@
 #include "console.h"
 #include "keyboard.h"
+#include "string.h"
 char* const VGA_BUFFER = (char*) 0xb8000;
 char int_buffer[11];
 char font_color = 0x07;
@@ -119,26 +120,6 @@ uint16_t get_cursor_position(){
 	outb(0x3D4, 0x0E);
 	cursor_position |= ((uint16_t)inb(0x3D5)) << 8;
 	return cursor_position;
-}
-
-int strcmp(char* str1, char* str2){
-	int index = 0;
-	while((str1[index] != '\0') && (str1[index] == str2[index])){
-		index++;
-	}
-	//while (*str1 && *str1==*str2){
-	//	str1++, str2++;
-	//}
-	//return *str1 - *str2;
-	return str1[index] - str2[index];
-}
-
-size_t strlen(const char *str){
-	size_t count = 0;
-	while(str[count] != '\0'){
-		count++;
-	}
-	return count;
 }
 
 int read(unsigned int byte){
