@@ -130,10 +130,10 @@ int read(unsigned int byte){
 				terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = '\0';
 			}
 			
-			if(handle_command(terminal_command, terminal_options, 0) == 1){
+			int exit = handle_command(terminal_command, terminal_options, 0);
+
+			if (exit == 1){
 				return 1;
-			} else {
-				handle_command(terminal_command, terminal_options, 0);
 			}
 
 			print_line("");
@@ -222,6 +222,9 @@ int handle_command(char terminal_command[64], char terminal_options[128], int er
 			font_color = 0x0e;
 		} else if (strcmp(terminal_options, "-white") == 0){
 			font_color = 0x0f;
+		} else {
+			print_line("");
+			print_string("Invalid color");
 		}
 	}	
 	return 0;
