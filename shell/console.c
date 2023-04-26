@@ -22,13 +22,18 @@ void clear_terminal(){
 }
 
 void print_character(char c){
-	if (term_pos >= VGA_TOTAL_BYTES - 2){
+	if (term_pos >= VGA_TOTAL_BYTES){
 		shift_terminal_up();
 		term_pos = VGA_TOTAL_BYTES - 160;
-	}
+	} 
 
 	VGA_BUFFER[term_pos++] = c;
 	VGA_BUFFER[term_pos++] = font_color;
+
+	if (term_pos >= VGA_TOTAL_BYTES){
+		shift_terminal_up();
+		term_pos = VGA_TOTAL_BYTES - 160;
+	} 
 }
 
 void print_string(char* str){
