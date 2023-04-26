@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "portmap.h"
 
 unsigned char scan(void){
 	unsigned char brk;

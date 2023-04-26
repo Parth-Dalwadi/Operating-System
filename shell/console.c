@@ -1,6 +1,8 @@
 #include "console.h"
 #include "keyboard.h"
 #include "string.h"
+#include "portmap.h"
+
 char* const VGA_BUFFER = (char*) 0xb8000;
 char int_buffer[11];
 char font_color = 0x07;
@@ -8,6 +10,8 @@ int term_pos = 0;
 char terminal_command[64];
 char terminal_options[128];
 int space = 0;
+int command_count = 0;
+int option_count = 0;
 	
 void clear_terminal(){
 	for (int i=0; i < VGA_TOTAL_BYTES; i+=2){
@@ -18,6 +22,10 @@ void clear_terminal(){
 }
 
 void print_character(char c){
+	if (term_pos >= VGA_TOTAL_BYTES){
+		shift_terminal_up();
+		term_pos = VGA_TOTAL_BYTES - 160;
+	}
 	VGA_BUFFER[term_pos++] = c;
 	VGA_BUFFER[term_pos++] = font_color;
 }
@@ -121,6 +129,17 @@ uint16_t get_cursor_position(){
 	return cursor_position;
 }
 
+void shift_terminal_up(){
+	for (int i = 160; i < VGA_TOTAL_BYTES; i+=2){
+		VGA_BUFFER[i-160] = VGA_BUFFER[i];
+		VGA_BUFFER[i-160 + 1] = VGA_BUFFER[i+1];
+	}
+	for (int i = VGA_TOTAL_BYTES - 160; i < VGA_TOTAL_BYTES; i+=2){
+		VGA_BUFFER[i] = '\0';
+		VGA_BUFFER[i+1] = 0x07;
+	}
+}
+
 int read(unsigned int byte){
 	while (byte = scan()) {
 		if (charmap[byte] == '\n'){
@@ -130,7 +149,17 @@ int read(unsigned int byte){
 				terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = '\0';
 			}
 			
-			int exit = handle_command(terminal_command, terminal_options, 0);
+			int error = 0;
+
+			if (command_count > 64){
+				error = 2;
+			}	
+
+			if (option_count > 128){
+				error = 3;
+			}	
+
+			int exit = handle_command(terminal_command, terminal_options, error);
 
 			if (exit == 1){
 				return 1;
@@ -139,6 +168,8 @@ int read(unsigned int byte){
 			print_line("");
 			print_string("->");
 			space = 0;
+			command_count = 0;
+			option_count = 0;
 		} else {
 			print_character(charmap[byte]);
 			if (charmap[byte] == ' '){
@@ -147,19 +178,11 @@ int read(unsigned int byte){
 			} else {
 
 				if (space == 0){
-					if (strlen(terminal_command) >= 64 && terminal_command[63] != '\0') {
-						terminal_command[63] = '\0';
-						handle_command(terminal_command, terminal_options, 1);
-					} else {
-						terminal_command[get_cursor_position() % VGA_WIDTH - 2] = charmap[byte];
-					}	
+					command_count++;
+					terminal_command[get_cursor_position() % VGA_WIDTH - 2] = charmap[byte];
 				} else {
-					if (strlen(terminal_options) >= 128 && terminal_options[127] != '\0') {
-						terminal_options[127] = '\0';
-						handle_command(terminal_command, terminal_options, 2);
-					} else {
-						terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = charmap[byte];
-					}
+					option_count++;
+					terminal_options[(get_cursor_position() - strlen(terminal_command)) % VGA_WIDTH - 3] = charmap[byte];
 				}
 			}
 
@@ -170,16 +193,14 @@ int read(unsigned int byte){
 }
 
 int handle_command(char terminal_command[64], char terminal_options[128], int error){
-	if (error == 1){
-		print_line("");
-		print_line("Error: Max command length is 64 characters.");
-		print_string("->");
-	}
-
 	if (error == 2){
 		print_line("");
-		print_line("Error: Max length for command and options is 192 characters.");
-		print_string("->");
+		print_string("Error: Max command length is 64 characters.");
+	}
+
+	if (error == 3){
+		print_line("");
+		print_string("Error: Max command option length is 128 characters.");
 	}
 
 	if (strcmp(terminal_command, "exit") == 0){
