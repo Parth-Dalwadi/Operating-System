@@ -22,10 +22,11 @@ void clear_terminal(){
 }
 
 void print_character(char c){
-	if (term_pos >= VGA_TOTAL_BYTES){
+	if (term_pos >= VGA_TOTAL_BYTES - 2){
 		shift_terminal_up();
 		term_pos = VGA_TOTAL_BYTES - 160;
 	}
+
 	VGA_BUFFER[term_pos++] = c;
 	VGA_BUFFER[term_pos++] = font_color;
 }
@@ -152,11 +153,9 @@ int read(unsigned int byte){
 			int error = 0;
 
 			if (command_count > 64){
+				error = 1;
+			} else if (option_count > 128){
 				error = 2;
-			}	
-
-			if (option_count > 128){
-				error = 3;
 			}	
 
 			int exit = handle_command(terminal_command, terminal_options, error);
@@ -193,12 +192,12 @@ int read(unsigned int byte){
 }
 
 int handle_command(char terminal_command[64], char terminal_options[128], int error){
-	if (error == 2){
+	if (error == 1){
 		print_line("");
 		print_string("Error: Max command length is 64 characters.");
 	}
 
-	if (error == 3){
+	if (error == 2){
 		print_line("");
 		print_string("Error: Max command option length is 128 characters.");
 	}
