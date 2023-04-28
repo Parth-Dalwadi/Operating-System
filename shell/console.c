@@ -176,7 +176,7 @@ int read(unsigned int byte){
 			option_count = 0;
 		} else {
 			print_character(charmap[byte]);
-			if (charmap[byte] == ' '){
+			if (space == 0 && charmap[byte] == ' '){
 				space = 1;
 				terminal_command[get_cursor_position() % VGA_WIDTH - 2] = '\0';
 			} else {
@@ -200,11 +200,13 @@ int handle_command(char terminal_command[64], char terminal_options[128], int er
 	if (error == 1){
 		print_line("");
 		print_string("Error: Max command length is 64 characters.");
+		return 0;
 	}
 
 	if (error == 2){
 		print_line("");
 		print_string("Error: Max command option length is 128 characters.");
+		return 0;
 	}
 
 	if (strcmp(terminal_command, "exit") == 0){
@@ -251,6 +253,22 @@ int handle_command(char terminal_command[64], char terminal_options[128], int er
 			print_line("");
 			print_string("Invalid color");
 		}
+
+		return 0;
 	}	
+
+
+
+
+
+
+
+	if (strcmp(terminal_command, "") == 0){
+		return 0;
+	}
+
+
+	print_line("");
+	print_string("Invalid command");
 	return 0;
 }
